@@ -2,6 +2,7 @@
 #This full-text takes in metadata that corresponds to the twitter user profile location and returns a latitude and longitude
 #John Spurney
 
+import os
 import re 
 import urllib.request
 from urllib.request import FancyURLopener
@@ -15,8 +16,8 @@ print(sampleCity + ", " + sampleState)
 
 #Like googleGetLatAndLong takes in strings city/state and gets the latitude and longitude
 def gazetteerGetLatAndLong(city,state):
-	f = open('2015_Gaz_place_national.txt','r')
-
+	f = open(os.path.join(direct,'2015_Gaz_place_national.txt'),'r')
+	
 	data = f.read()
 	
 	pattern = sampleState + "\t\d*\t\d*\t"+ sampleCity + "\D*\d*\t\D\t\d*\t\d*\t*\s*\d*\D\d*\s*\d*\D\d*\t\s(.*?)\n"
@@ -94,7 +95,13 @@ def singleLocationOutput(tempString):
 	rawLocationSeparator(tempString,cityHolder,stateHolder)
 	city = listToString(cityHolder)
 	state = listToString(stateHolder)
-	googleGetLatAndLong(city,state)
+	
+	#comment/uncomment depending on which one you want to use
+	
+	#googleGetLatAndLong
+	#googleGetLatAndLong(city,state)
+	#gazetteerGetLatAndLong
+	gazetteerGetLatAndLong(city,state)
 	print("")
 	
 	#Cleans the city/state holder lists
@@ -102,8 +109,9 @@ def singleLocationOutput(tempString):
 	stateHolder = []
 
 """Start of tweet parsing"""
-rawFile = open('twitter-sample.txt','r')
-blankFile = open('funnelledLocations.txt','r+')
+direct = 'C:\\Users\John\Desktop\HPCGIS\Temp'
+rawFile = open(os.path.join(direct, 'twitter-sample.txt'),'r')
+blankFile = open(os.path.join(direct,'funnelledLocations.txt'),'r+')
 
 data = rawFile.read()
 
@@ -139,7 +147,7 @@ blankFile.close()
 tempLocationsList = []
 
 #Reads locations separated by a new line from a text file and stores them in tempLocationsList
-with open('funnelledLocations.txt', 'r') as f:
+with  open(os.path.join(direct,'funnelledLocations.txt'),'r') as f:
 	tempLocationsList = [x.strip() for x in f.readlines()]
 f.close()
 
