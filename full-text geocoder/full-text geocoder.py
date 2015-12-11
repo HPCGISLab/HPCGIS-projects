@@ -5,14 +5,11 @@
 import os
 import re 
 import urllib.request
-from urllib.request import FancyURLopener
 import json
 
-#These to strings are used to test the gazetteerGetLatAndLong function 
+#Placeholder strings
 sampleCity = "Kent"
 sampleState = "OH"
-
-print(sampleCity + ", " + sampleState)
 
 #Like googleGetLatAndLong takes in strings city/state and gets the latitude and longitude
 def gazetteerGetLatAndLong(city,state):
