@@ -106,7 +106,7 @@ def singleLocationOutput(tempString):
 	stateHolder = []
 
 """Start of tweet parsing"""
-direct = 'C:\\Users\John\Desktop\HPCGIS\Temp'
+direct = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 rawFile = open(os.path.join(direct, 'twitter-sample.txt'),'r')
 blankFile = open(os.path.join(direct,'funnelledLocations.txt'),'r+')
 
