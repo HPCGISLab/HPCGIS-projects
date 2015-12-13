@@ -1,6 +1,7 @@
 #full-text geocoder
 #This full-text takes in metadata that corresponds to the twitter user profile location and returns a latitude and longitude
 #John Spurney
+#Uses python 3.5
 
 import os
 import re 
@@ -113,7 +114,7 @@ blankFile = open(os.path.join(direct,'funnelledLocations.txt'),'r+')
 data = rawFile.read()
 
 #Finds the profile locations following twitters pattern with regular expressions 
-tweetProfileLocations = re.findall(r'"full_name": "(.*?)"',data)
+tweetProfileLocations = re.findall(r'"location": "(.*?)"',data)
 UnitedStatesCitiesAndStates = []
 
 #funnels out the locations without commas
