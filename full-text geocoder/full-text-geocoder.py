@@ -6,12 +6,84 @@ import os
 #Resources folder directory for full-text-geocoder
 directory = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 #This directory location should contain:
-#Your twitter stream data to parse (for now as a .txt file)
-twitterDataName = 'twitter-sample.txt'
+#Your twitter stream data to parse (as a .json or .txt file)
+twitterDataName = 'twitter-sample.json'
 
 #Information Variables
 tweetProfileLocations = []
-filterChanges = []
+locationLengthChange = []
+
+#Useful dictionary of US states and territories
+states = {
+        'AK': 'Alaska',
+        'AL': 'Alabama',
+        'AR': 'Arkansas',
+        'AS': 'American Samoa',
+        'AZ': 'Arizona',
+        'CA': 'California',
+        'CO': 'Colorado',
+        'CT': 'Connecticut',
+        'DC': 'District of Columbia',
+        'DE': 'Delaware',
+        'FL': 'Florida',
+        'GA': 'Georgia',
+        'GU': 'Guam',
+        'HI': 'Hawaii',
+        'IA': 'Iowa',
+        'ID': 'Idaho',
+        'IL': 'Illinois',
+        'IN': 'Indiana',
+        'KS': 'Kansas',
+        'KY': 'Kentucky',
+        'LA': 'Louisiana',
+        'MA': 'Massachusetts',
+        'MD': 'Maryland',
+        'ME': 'Maine',
+        'MI': 'Michigan',
+        'MN': 'Minnesota',
+        'MO': 'Missouri',
+        'MP': 'Northern Mariana Islands',
+        'MS': 'Mississippi',
+        'MT': 'Montana',
+        'NA': 'National',
+        'NC': 'North Carolina',
+        'ND': 'North Dakota',
+        'NE': 'Nebraska',
+        'NH': 'New Hampshire',
+        'NJ': 'New Jersey',
+        'NM': 'New Mexico',
+        'NV': 'Nevada',
+        'NY': 'New York',
+        'OH': 'Ohio',
+        'OK': 'Oklahoma',
+        'OR': 'Oregon',
+        'PA': 'Pennsylvania',
+        'PR': 'Puerto Rico',
+        'RI': 'Rhode Island',
+        'SC': 'South Carolina',
+        'SD': 'South Dakota',
+        'TN': 'Tennessee',
+        'TX': 'Texas',
+        'UT': 'Utah',
+        'VA': 'Virginia',
+        'VI': 'Virgin Islands',
+        'VT': 'Vermont',
+        'WA': 'Washington',
+        'WI': 'Wisconsin',
+        'WV': 'West Virginia',
+        'WY': 'Wyoming'
+}
+
+#Can make more elegant later
+stateKeys = states.keys()
+stateKeys = [' {0}'.format(elem) for elem in stateKeys] 
+stateKeys = [x.lower() for x in stateKeys] 
+
+stateValues = states.values()
+stateValues = [' {0}'.format(elem) for elem in stateValues] 
+stateValues = [x.lower() for x in stateValues] 
+
+stateInfo = stateKeys + stateValues
 
 #Uses the twitter data text file to update tweetProfileLocations 
 def textGetTweetProfileLocations(fileName):
@@ -23,26 +95,33 @@ def textGetTweetProfileLocations(fileName):
     tweetProfileLocations = tempProfileLocations
 
 #Gets rid of not-wanted strings from tweetProfileLocations
-def funnelLocations():
-    global tweetProfileLocations
+def locationsFunnel():
+    global tweetProfileLocations, stateInfo, stateKeys, stateValues
     tmp = []
     #total number of profile locations found
     tmp.append(len(tweetProfileLocations))
-    #Filter 1, get's rid of empty strings 
+    #get's rid of empty strings 
     tweetProfileLocations = filter(None, tweetProfileLocations)
+    tmp.append(len(tweetProfileLocations))
+    #get's rid of strings with digits
+    tweetProfileLocations = [x for x in tweetProfileLocations if not re.search(r'\d',x)]
+    tmp.append(len(tweetProfileLocations))
+    #Makes all the locations lowercase for easier examination    
+    tweetProfileLocations = [x.lower() for x in tweetProfileLocations]  
+    #Has any of the elements in stateInfo
+    tweetProfileLocations = [i for i in tweetProfileLocations if any(j in i for j in stateInfo)]
     tmp.append(len(tweetProfileLocations))
     #Returns a list with the length of locations after each filter applied
     return tmp
     
 #Main
 textGetTweetProfileLocations(twitterDataName)
-filterChanges = funnelLocations()
+
+locationLengthChange = locationsFunnel()
 
 #Prints for testing
-print "---------------"
-for num in filterChanges:
+for location in tweetProfileLocations:
+    print location
+print "\n"
+for num in locationLengthChange:
     print num
-
-
-
-
