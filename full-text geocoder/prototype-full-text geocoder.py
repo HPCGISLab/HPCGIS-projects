@@ -108,7 +108,7 @@ def singleLocationOutput(tempString):
 
 """Start of tweet parsing"""
 direct = 'C:\\Users\John\Desktop\HPCGIS\Resources'
-rawFile = open(os.path.join(direct, 'twitter-sample.txt'),'r')
+rawFile = open(os.path.join(direct, 'twitter-sample.json'),'r')
 blankFile = open(os.path.join(direct,'funnelledLocations.txt'),'r+')
 
 data = rawFile.read()
