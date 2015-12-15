@@ -96,8 +96,9 @@ def textGetTweetProfileLocations(fileName):
 
 #Gets rid of not-wanted strings from tweetProfileLocations
 def locationsFunnel():
-    global tweetProfileLocations, stateInfo, stateKeys, stateValues
+    global tweetProfileLocations, stateInfo
     tmp = []
+    tmpTweets = []
     #total number of profile locations found
     tmp.append(len(tweetProfileLocations))
     #get's rid of empty strings 
@@ -111,12 +112,19 @@ def locationsFunnel():
     #Has any of the elements in stateInfo
     tweetProfileLocations = [i for i in tweetProfileLocations if any(j in i for j in stateInfo)]
     tmp.append(len(tweetProfileLocations))
+    #Final inspection filter
+    for i in range(len(tweetProfileLocations)):
+        for j in range(len(stateInfo)):
+            if ((len(tweetProfileLocations[i])) > (len(stateInfo[j]))) and (stateInfo[j][::-1] == tweetProfileLocations[i][::-1][0:len(stateInfo[j])]):
+                tmpTweets.append(tweetProfileLocations[i])
+                break
+    tweetProfileLocations = tmpTweets
+    tmp.append(len(tweetProfileLocations))
     #Returns a list with the length of locations after each filter applied
     return tmp
     
 #Main
 textGetTweetProfileLocations(twitterDataName)
-
 locationLengthChange = locationsFunnel()
 
 #Prints for testing
