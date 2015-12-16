@@ -85,6 +85,14 @@ stateValues = [x.lower() for x in stateValues]
 
 stateInfo = stateKeys + stateValues
 
+#NationaLocation class
+#When creating an instance of NationalLocation
+#be sure the city and state only have alphabetic characters
+class NationalLocation:
+    def __init__(self, city, state):
+        self.city = city.title()
+        self.state = state.upper()
+        
 #Uses the twitter data text file to update tweetProfileLocations 
 def textGetTweetProfileLocations(fileName):
     global tweetProfileLocations
@@ -95,7 +103,7 @@ def textGetTweetProfileLocations(fileName):
     tweetProfileLocations = tempProfileLocations
 
 #Gets rid of not-wanted strings from tweetProfileLocations
-def locationsFunnel():
+def funnel():
     global tweetProfileLocations, stateInfo
     tmp = []
     tmpTweets = []
@@ -122,14 +130,19 @@ def locationsFunnel():
     tmp.append(len(tweetProfileLocations))
     #Returns a list with the length of locations after each filter applied
     return tmp
-    
+
+#Organizes the raw profile location strings that made it through the funnel
+#and puts them inside NationalLocation containers   
+def encapsulator():
+    global tweetProfileLocations
+    for location in tweetProfileLocations:
+        print location
 #Main
 textGetTweetProfileLocations(twitterDataName)
-locationLengthChange = locationsFunnel()
+locationLengthChange = funnel()
+encapsulator()
 
-#Prints for testing
-for location in tweetProfileLocations:
-    print location
+#Testing area
 print "\n"
 for num in locationLengthChange:
     print num
