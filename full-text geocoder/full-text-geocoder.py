@@ -8,6 +8,8 @@ directory = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 #This directory location should contain:
 #Your twitter stream data to parse (as a .json or .txt file)
 twitterDataName = 'twitter-sample.json'
+#The 2015 US census gazetteer file name with the national location coordinates
+gazetteer = '2015_Gaz_place_national.txt'
 
 #Information Variables
 tweetProfileLocations = []
