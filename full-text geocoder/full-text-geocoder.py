@@ -91,9 +91,17 @@ stateInfo = stateKeys + stateValues
 #When creating an instance of NationalLocation
 #be sure the city and state only have alphabetic characters
 class NationalLocation:
-    def __init__(self, city, state):
+    def __init__(self, city, state, validLocation):
+        #string
         self.city = city.title()
+        #string
         self.state = state.upper()
+        #boolean -- should be initialized to false, once checked if it is an actual location then validLocation = True
+        self.validLocation = validLocation
+    def printLoc(self):
+        print self.city + ', ' + self.state + ' -- ' + "confirmed: " + str(self.validLocation)
+    def confirmLoc(self):
+        self.validLocation = True 
         
 #Uses the twitter data text file to update tweetProfileLocations 
 def textGetTweetProfileLocations(fileName):
@@ -137,14 +145,36 @@ def funnel():
 #and puts them inside NationalLocation containers   
 def encapsulator():
     global tweetProfileLocations
-    for location in tweetProfileLocations:
-        print location
+    tempSplitLocations = []
+    #Splits the city and state
+    for i in range(len(tweetProfileLocations)):
+        for j in range(len(stateInfo)):
+            if ((len(tweetProfileLocations[i])) > (len(stateInfo[j]))) and (stateInfo[j][::-1] == tweetProfileLocations[i][::-1][0:len(stateInfo[j])]):
+                tempSplitLocations.append(tweetProfileLocations[i].split(stateInfo[j]))
+                #57 is the number that is returned from len(stateKeys or stateValues)
+                if j >= 57:
+                    tempSplitLocations[i][1] = stateInfo[j % 57][1:]
+                else:
+                    tempSplitLocations[i][1] = stateInfo[j][1:]
+                break
+    #If a city string has a comma in front of it, this removes the comma
+    for i in range(len(tempSplitLocations)):
+        if tempSplitLocations[i][0][len(tempSplitLocations[i][0]) - 1:] == ',':
+            tempSplitLocations[i][0] = tempSplitLocations[i][0][:-1]
+    #Encapsulates the raw location string data
+    tweetProfileLocations = []
+    for location in tempSplitLocations:
+        tweetProfileLocations.append(NationalLocation(location[0],location[1],False))
+    
 #Main
 textGetTweetProfileLocations(twitterDataName)
 locationLengthChange = funnel()
 encapsulator()
 
 #Testing area
+for location in tweetProfileLocations:
+    location.printLoc()
+
 print "\n"
 for num in locationLengthChange:
     print num
