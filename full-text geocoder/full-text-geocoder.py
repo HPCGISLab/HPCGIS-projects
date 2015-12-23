@@ -10,17 +10,18 @@ directory = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 twitterDataName = 'twitter-sample.json'
 #The 2015 US census gazetteer file name with the national location coordinates
 gazetteer = '2015_Gaz_place_national.txt'
-
 #Information Variables
+gazHolder = []
 tweetProfileLocations = []
 locationLengthChange = []
 
 #Useful dictionary of US states and territories
+#Places not supported by the gazetteer are commented out
 states = {
         'AK': 'Alaska',
         'AL': 'Alabama',
         'AR': 'Arkansas',
-        'AS': 'American Samoa',
+        #'AS': 'American Samoa',
         'AZ': 'Arizona',
         'CA': 'California',
         'CO': 'Colorado',
@@ -29,7 +30,7 @@ states = {
         'DE': 'Delaware',
         'FL': 'Florida',
         'GA': 'Georgia',
-        'GU': 'Guam',
+        #'GU': 'Guam',
         'HI': 'Hawaii',
         'IA': 'Iowa',
         'ID': 'Idaho',
@@ -44,10 +45,10 @@ states = {
         'MI': 'Michigan',
         'MN': 'Minnesota',
         'MO': 'Missouri',
-        'MP': 'Northern Mariana Islands',
+        #'MP': 'Northern Mariana Islands',
         'MS': 'Mississippi',
         'MT': 'Montana',
-        'NA': 'National',
+        #'NA': 'National',
         'NC': 'North Carolina',
         'ND': 'North Dakota',
         'NE': 'Nebraska',
@@ -68,7 +69,7 @@ states = {
         'TX': 'Texas',
         'UT': 'Utah',
         'VA': 'Virginia',
-        'VI': 'Virgin Islands',
+        #'VI': 'Virgin Islands',
         'VT': 'Vermont',
         'WA': 'Washington',
         'WI': 'Wisconsin',
@@ -76,7 +77,7 @@ states = {
         'WY': 'Wyoming'
 }
 
-#Can make more elegant later
+#Keys and Values individually
 stateKeys = states.keys()
 stateKeys = [' {0}'.format(elem) for elem in stateKeys] 
 stateKeys = [x.lower() for x in stateKeys] 
@@ -91,17 +92,16 @@ stateInfo = stateKeys + stateValues
 #When creating an instance of NationalLocation
 #be sure the city and state only have alphabetic characters
 class NationalLocation:
-    def __init__(self, city, state, validLocation):
+    def __init__(self, city, state):
         #string
         self.city = city.title()
         #string
         self.state = state.upper()
-        #boolean -- should be initialized to false, once checked if it is an actual location then validLocation = True
-        self.validLocation = validLocation
-    def printLoc(self):
-        print self.city + ', ' + self.state + ' -- ' + "confirmed: " + str(self.validLocation)
-    def confirmLoc(self):
-        self.validLocation = True 
+        #initialized as string, turns into float later
+        self.latitude = 'unknown'
+        self.longitude = 'unknown'
+    def formalWrite(self):
+        return self.city + ', ' + self.state
         
 #Uses the twitter data text file to update tweetProfileLocations 
 def textGetTweetProfileLocations(fileName):
@@ -151,9 +151,9 @@ def encapsulator():
         for j in range(len(stateInfo)):
             if ((len(tweetProfileLocations[i])) > (len(stateInfo[j]))) and (stateInfo[j][::-1] == tweetProfileLocations[i][::-1][0:len(stateInfo[j])]):
                 tempSplitLocations.append(tweetProfileLocations[i].split(stateInfo[j]))
-                #57 is the number that is returned from len(stateKeys or stateValues)
-                if j >= 57:
-                    tempSplitLocations[i][1] = stateInfo[j % 57][1:]
+                #len(stateKeys or stateValues) decides modulo operation outcome
+                if j >= len(stateKeys):
+                    tempSplitLocations[i][1] = stateInfo[j % len(stateKeys)][1:]
                 else:
                     tempSplitLocations[i][1] = stateInfo[j][1:]
                 break
@@ -164,16 +164,34 @@ def encapsulator():
     #Encapsulates the raw location string data
     tweetProfileLocations = []
     for location in tempSplitLocations:
-        tweetProfileLocations.append(NationalLocation(location[0],location[1],False))
-    
+        tweetProfileLocations.append(NationalLocation(location[0],location[1]))
+
+
+#This extracts the Information I need from the gazetteer
+def gazInit():
+    global gazHolder
+    #Open gazetteer file
+    f = open(os.path.join(directory,'2015_Gaz_place_national.txt'),'r')
+    #There are 29575 lines of information total in the gazetteer
+    #Organizes the relevant information from the gazetteer into a list
+    for line in f:
+        temp = line.split()
+        #Gazetteer format: (State Initial)-(City)-(Latitude)-(Longitude)
+        gazHolder.append([temp[0],(" ".join(temp[3:len(temp)- 8])),temp[len(temp)-2:][0],temp[len(temp)-2:][1]])
+    #Gets rid of the useless line from the gazetteer
+    del gazHolder[0]
+    #Closes the gazetteer file 
+    f.close()
+
 #Main
 textGetTweetProfileLocations(twitterDataName)
 locationLengthChange = funnel()
 encapsulator()
+gazInit()
 
 #Testing area
 for location in tweetProfileLocations:
-    location.printLoc()
+    print location.formalWrite()
 
 print "\n"
 for num in locationLengthChange:
