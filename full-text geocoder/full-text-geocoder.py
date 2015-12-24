@@ -100,8 +100,9 @@ class NationalLocation:
         #initialized as string, turns into float later
         self.latitude = 'unknown'
         self.longitude = 'unknown'
-    def formalWrite(self):
-        return self.city + ', ' + self.state
+    #returns NationalLocation's values in a comma separated format
+    def prettyWrite(self):
+        return self.state + ',' + self.city + ',' + self.latitude + ',' + self.longitude
         
 #Uses the twitter data text file to update tweetProfileLocations 
 def textGetTweetProfileLocations(fileName):
@@ -166,7 +167,6 @@ def encapsulator():
     for location in tempSplitLocations:
         tweetProfileLocations.append(NationalLocation(location[0],location[1]))
 
-
 #This extracts the Information I need from the gazetteer
 def gazInit():
     global gazHolder
@@ -176,22 +176,51 @@ def gazInit():
     #Organizes the relevant information from the gazetteer into a list
     for line in f:
         temp = line.split()
-        #Gazetteer format: (State Initial)-(City)-(Latitude)-(Longitude)
+        #Gazetteer format: (0:State Initial)-(1:City)-(2:Latitude)-(3:Longitude)
         gazHolder.append([temp[0],(" ".join(temp[3:len(temp)- 8])),temp[len(temp)-2:][0],temp[len(temp)-2:][1]])
     #Gets rid of the useless line from the gazetteer
     del gazHolder[0]
     #Closes the gazetteer file 
     f.close()
 
+#If location found: store lat/lon -- else: remove the specific instance inside tweetProfileLocations
+def gazGetLatAndLong():
+    global tweetProfileLocations, gazHolder, locationLengthChange
+    #Sets the instances latitude and longitude if it finds a 'close enough' match
+    for location in tweetProfileLocations:
+        for i in range(len(gazHolder)):
+            if (location.state == gazHolder[i][0]) and (location.city in gazHolder[i][1]):
+                location.latitude = gazHolder[i][2]
+                location.longitude = gazHolder[i][3]
+                break
+    #Removes elements from tweetProfileLocations whose location is still unknown after searching the gazetteer
+    for i in range(len(tweetProfileLocations)):
+        #Don't have to check for both latitude or longitude
+        #Because if the first loop didn't modify the instance then the initialized values should remain the same
+        if tweetProfileLocations[i].latitude == 'unknown':
+            tweetProfileLocations[i] = ""
+    #get's rid of empty strings 
+    tweetProfileLocations = filter(None, tweetProfileLocations) 
+    #Finds out the new length of tweetProfileLocations after non-matches removed
+    locationLengthChange.append(len(tweetProfileLocations))
+
+#TODO:harvest function aka the function that decides what to do with the data found
+#1)write stuff on blank file comma separated
+#2)Bar graph for filter changes visualization
+#3)state found heatmap plot
+#4)Plot each individual location
+#extra) save all the plots and stuff
+
 #Main
 textGetTweetProfileLocations(twitterDataName)
 locationLengthChange = funnel()
 encapsulator()
 gazInit()
+gazGetLatAndLong()
 
 #Testing area
 for location in tweetProfileLocations:
-    print location.formalWrite()
+    print location.prettyWrite()
 
 print "\n"
 for num in locationLengthChange:
