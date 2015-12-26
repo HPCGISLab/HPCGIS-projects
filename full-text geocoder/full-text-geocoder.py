@@ -1,8 +1,10 @@
 #full-text-geocoder
 #John Spurney
-import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.basemap import Basemap
+from collections import defaultdict
+import matplotlib.pyplot as plt
+import numpy as np
 import re 
 import os
 
@@ -11,12 +13,17 @@ directory = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 #This directory location should contain:
 #Your twitter stream data to parse (as a .json or .txt file)
 twitterDataName = 'twitter-sample.json'
-#A Blank text file to write stuff on
+#A Blank text file to write stuff on (comma delimited information)
 blankFile = 'sample-output.txt'
 #The 2015 US census gazetteer file name with the national location coordinates
 gazetteer = '2015_Gaz_place_national.txt'
 #Name for locationLengthChange graph
 barGraph = 'sample-bar-graph.png'
+#Name for tweetProfileLocationsMap
+tweetProfileLocationsMap = 'sample-tweet-map.png'
+#A Blank text file to write stuff on (state tweet frequency)
+stateTweetFrequency = 'sample-tweet-frequency.txt'
+
 #Information Variables
 gazHolder = []
 tweetProfileLocations = []
@@ -211,7 +218,6 @@ def gazGetLatAndLong():
     locationLengthChange.append(len(tweetProfileLocations))
 
 #This function decides what to output and what to do with the national location data
-#TODO:Finish harvest function and save all plots
 def harvest(pillColor):
     #Writes gathered data on a blank textfile in a comma-delimited format 
     f = open(os.path.join(directory, blankFile),'r+')
@@ -255,21 +261,55 @@ def harvest(pillColor):
     plt.show()
     
     plt.savefig(os.path.join(directory, barGraph), bbox_inches='tight')
+    plt.close()
     
-    #TODO:State found heatmap plot
-    #TODO:Plot each individual location
-
+    #Plots each individual location on a map
+    m = Basemap(projection='lcc',llcrnrlat=22,urcrnrlat=49,llcrnrlon=-119,urcrnrlon=-64,lat_1=33,lat_2=45,lon_0=-95,resolution='c')
+    
+    m.drawcountries(color='y')
+    m.drawcoastlines(color='y')
+    m.drawstates(color='y')
+    
+    m.bluemarble()
+    
+    for location in tweetProfileLocations:
+        lon,lat = location.longitude,location.latitude
+        x,y = m(lon,lat)
+        m.plot(x,y,'r.')
+    
+    plt.title("full-text-geocoder tweetProfileLocations")
+    plt.show()
+    
+    plt.savefig(os.path.join(directory, tweetProfileLocationsMap), bbox_inches='tight')
+    plt.close()
+    
+    #This finds the frequency of tweets for each state that tweeted 
+    f = open(os.path.join(directory, stateTweetFrequency),'r+')  
+    
+    d = defaultdict(int)
+    for location in tweetProfileLocations:
+        d[location.state] += 1
+    for word in sorted(d, key=d.get, reverse=True):
+       f.write(word + ',' + str(d[word]) + "\n")
+        
+    f.close()
+    
+    #Lets the user know the program finished processing the tweets
+    print '\n' + "finished processing the tweets".upper()
+    
 #Main
-pill = 'red pill'
+pill = 'blue pill'
 
 if pill == 'red pill':
+    print "you stay in wonderland, and I show you how deep the rabbit hole goes"
     textGetTweetProfileLocations(twitterDataName)
     locationLengthChange = funnel()
     encapsulator()
     gazInit()
     gazGetLatAndLong()
     harvest('r')
-    
+
 elif pill == 'blue pill':
+    print "the story ends, you wake up in your bed and believe whatever you want to believe"
     jsonGetTweetProfileLocations()
 
