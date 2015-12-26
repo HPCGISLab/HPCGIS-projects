@@ -1,5 +1,8 @@
 #full-text-geocoder
 #John Spurney
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import re 
 import os
 
@@ -8,20 +11,22 @@ directory = 'C:\\Users\John\Desktop\HPCGIS\Resources'
 #This directory location should contain:
 #Your twitter stream data to parse (as a .json or .txt file)
 twitterDataName = 'twitter-sample.json'
+#A Blank text file to write stuff on
+blankFile = 'sample-output.txt'
 #The 2015 US census gazetteer file name with the national location coordinates
 gazetteer = '2015_Gaz_place_national.txt'
+#Name for locationLengthChange graph
+barGraph = 'sample-bar-graph.png'
 #Information Variables
 gazHolder = []
 tweetProfileLocations = []
 locationLengthChange = []
 
 #Useful dictionary of US states and territories
-#Places not supported by the gazetteer are commented out
 states = {
         'AK': 'Alaska',
         'AL': 'Alabama',
         'AR': 'Arkansas',
-        #'AS': 'American Samoa',
         'AZ': 'Arizona',
         'CA': 'California',
         'CO': 'Colorado',
@@ -30,7 +35,6 @@ states = {
         'DE': 'Delaware',
         'FL': 'Florida',
         'GA': 'Georgia',
-        #'GU': 'Guam',
         'HI': 'Hawaii',
         'IA': 'Iowa',
         'ID': 'Idaho',
@@ -45,10 +49,8 @@ states = {
         'MI': 'Michigan',
         'MN': 'Minnesota',
         'MO': 'Missouri',
-        #'MP': 'Northern Mariana Islands',
         'MS': 'Mississippi',
         'MT': 'Montana',
-        #'NA': 'National',
         'NC': 'North Carolina',
         'ND': 'North Dakota',
         'NE': 'Nebraska',
@@ -69,7 +71,6 @@ states = {
         'TX': 'Texas',
         'UT': 'Utah',
         'VA': 'Virginia',
-        #'VI': 'Virgin Islands',
         'VT': 'Vermont',
         'WA': 'Washington',
         'WI': 'Wisconsin',
@@ -103,8 +104,13 @@ class NationalLocation:
     #returns NationalLocation's values in a comma separated format
     def prettyWrite(self):
         return self.state + ',' + self.city + ',' + self.latitude + ',' + self.longitude
-        
-#Uses the twitter data text file to update tweetProfileLocations 
+
+#Uses the twitter data json file to update tweetProfileLocations with the json library
+#TODO:Finish jsonGetTweetProfileLocations
+def jsonGetTweetProfileLocations():
+    print "UNDER CONSTRUCTION"
+    
+#Uses the twitter data json file to update tweetProfileLocations with a regular expression
 def textGetTweetProfileLocations(fileName):
     global tweetProfileLocations
     streamText = open(os.path.join(directory, fileName),'r')
@@ -204,24 +210,66 @@ def gazGetLatAndLong():
     #Finds out the new length of tweetProfileLocations after non-matches removed
     locationLengthChange.append(len(tweetProfileLocations))
 
-#TODO:harvest function aka the function that decides what to do with the data found
-#1)write stuff on blank file comma separated
-#2)Bar graph for filter changes visualization
-#3)state found heatmap plot
-#4)Plot each individual location
-#extra) save all the plots and stuff
+#This function decides what to output and what to do with the national location data
+#TODO:Finish harvest function and save all plots
+def harvest(pillColor):
+    #Writes gathered data on a blank textfile in a comma-delimited format 
+    f = open(os.path.join(directory, blankFile),'r+')
+    for location in tweetProfileLocations:
+        f.write(location.prettyWrite() + "\n")
+    f.close()
+    
+    #Graph that shows how each of the filters affect tweetProfileLocations
+    numFilters = len(locationLengthChange)
+    testNames = ['Gaz Match', 'stateInfo 2', 'stateInfo 1', 'No Digits','Not Empty','Total']
+    allLengthChange = locationLengthChange[::-1]
+    
+    fig, ax1 = plt.subplots(figsize=(9, 7))
+    plt.subplots_adjust(left=0.115, right=0.88)
+    fig.canvas.set_window_title('full-text-geocoder graph')
+    pos = np.arange(numFilters) + 0.5
+    
+    ax1.barh(pos, allLengthChange, align='center', height=0.5, color=pillColor)
+    ax1.axis([0, 100, 0, numFilters])
+    plt.yticks(pos, testNames)
+    ax1.set_title('Filter Impact On tweetProfileLocations')
+    ax1.set_xlabel("Number Of Locations",size="small")
+    
+    ax2 = ax1.twinx()
+    ax2.plot([100, 100], [0, numFilters], 'white', alpha=0.1)
+    ax2.xaxis.set_major_locator(MaxNLocator(7))
+    ax2.xaxis.grid(True, linestyle='--', which='major', color='grey', alpha=0.25)
+    plt.plot([50, 50], [0, numFilters], 'grey', alpha=0.25)
+    ax2.set_yticks(pos)
+    
+    labels = []
+    percents = []
+    #Side data presented in format:(number of locations),(percent of locations remaining after filter applied) 
+    for num in allLengthChange:
+        percents.append(str(round((float(num) / float(allLengthChange[len(allLengthChange)-1]))*100.00,2))+')')
+    for i in range(len(allLengthChange)):
+       labels.append(str(allLengthChange[i]) + '(' + percents[i])
+   
+    ax2.set_yticklabels(labels,size="small")
+    ax2.set_ylim(ax1.get_ylim())
+    plt.show()
+    
+    plt.savefig(os.path.join(directory, barGraph), bbox_inches='tight')
+    
+    #TODO:State found heatmap plot
+    #TODO:Plot each individual location
 
 #Main
-textGetTweetProfileLocations(twitterDataName)
-locationLengthChange = funnel()
-encapsulator()
-gazInit()
-gazGetLatAndLong()
+pill = 'red pill'
 
-#Testing area
-for location in tweetProfileLocations:
-    print location.prettyWrite()
+if pill == 'red pill':
+    textGetTweetProfileLocations(twitterDataName)
+    locationLengthChange = funnel()
+    encapsulator()
+    gazInit()
+    gazGetLatAndLong()
+    harvest('r')
+    
+elif pill == 'blue pill':
+    jsonGetTweetProfileLocations()
 
-print "\n"
-for num in locationLengthChange:
-    print num
