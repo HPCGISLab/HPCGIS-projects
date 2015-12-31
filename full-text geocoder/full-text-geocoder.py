@@ -5,6 +5,7 @@ from mpl_toolkits.basemap import Basemap
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 import re 
 import os
 
@@ -113,10 +114,54 @@ class NationalLocation:
         return self.state + ',' + self.city + ',' + self.latitude + ',' + self.longitude
 
 #Uses the twitter data json file to update tweetProfileLocations with the json library
-#TODO:Finish jsonGetTweetProfileLocations
-def jsonGetTweetProfileLocations():
-    print "UNDER CONSTRUCTION"
-    
+def jsonGetTweetProfileLocations(fileName):
+    global tweetProfileLocations
+    f = open(os.path.join(directory, fileName),'r')
+    data = f.read()
+    #Counting variables
+    rightBC = 0    
+    leftBC = 0
+    totalCounter = 0    
+    #Container variables
+    tempString = ""
+    tweets = []
+    temp = []
+    #Since the sample raw json file is in one big long line, this code finds
+    #the information that each tweet contains, and stores the strings in a list
+    for char in data:
+        if char == '{':
+            rightBC += 1
+            tempString += str(char)
+        elif char =='}':
+            leftBC += 1
+            tempString += str(char)
+            if rightBC == leftBC:
+                rightBC = 0
+                leftBC = 0
+                totalCounter += 1
+                tweets.append(tempString)
+                tempString = ""     
+        else:
+            tempString += str(char)
+    #Closes the json file
+    f.close()
+    #Tries to convert the strings into JSON objects 
+    for tweet in tweets:
+        try:
+            temp.append(json.loads(tweet))
+        except:
+            pass
+    #If there is a user defined location string in the tweet object it appends the string
+    #into the tweetProfileLocations list 
+    for i in range(len(temp)):
+        try:
+            tweetProfileLocations.append(str(temp[i]['user']['location']))
+        except:
+            pass
+    #Prints the number of tweets it found
+    print "\n"
+    print "# of tweets examined:" + str(len(temp))
+
 #Uses the twitter data json file to update tweetProfileLocations with a regular expression
 def textGetTweetProfileLocations(fileName):
     global tweetProfileLocations
@@ -218,7 +263,7 @@ def gazGetLatAndLong():
     locationLengthChange.append(len(tweetProfileLocations))
 
 #This function decides what to output and what to do with the national location data
-def harvest(pillColor):
+def harvest():
     #Writes gathered data on a blank textfile in a comma-delimited format 
     f = open(os.path.join(directory, blankFile),'r+')
     for location in tweetProfileLocations:
@@ -235,7 +280,7 @@ def harvest(pillColor):
     fig.canvas.set_window_title('full-text-geocoder graph')
     pos = np.arange(numFilters) + 0.5
     
-    ax1.barh(pos, allLengthChange, align='center', height=0.5, color=pillColor)
+    ax1.barh(pos, allLengthChange, align='center', height=0.5, color='b')
     ax1.axis([0, 100, 0, numFilters])
     plt.yticks(pos, testNames)
     ax1.set_title('Filter Impact On tweetProfileLocations')
@@ -301,15 +346,15 @@ def harvest(pillColor):
 pill = 'blue pill'
 
 if pill == 'red pill':
-    print "you stay in wonderland, and I show you how deep the rabbit hole goes"
     textGetTweetProfileLocations(twitterDataName)
-    locationLengthChange = funnel()
-    encapsulator()
-    gazInit()
-    gazGetLatAndLong()
-    harvest('r')
-
+    
 elif pill == 'blue pill':
-    print "the story ends, you wake up in your bed and believe whatever you want to believe"
-    jsonGetTweetProfileLocations()
+    jsonGetTweetProfileLocations(twitterDataName)
+
+locationLengthChange = funnel()
+encapsulator()
+gazInit()
+gazGetLatAndLong()
+harvest()
+
 
